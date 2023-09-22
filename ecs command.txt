@@ -1,0 +1,22 @@
+node{
+   stage('SCM Checkout'){
+       git credentialsId: '5c1aca4b-df6f-4ffd-a11e-29c0c1142cc2', url: 'https://github.com/Bharathwaj-D/ecs.git'
+   }
+   stage('build image'){
+       sh 'sudo docker build . -t bharath:latest'
+   }
+   stage('version tag'){
+       sh 'sudo docker tag bharath:latest 928920371678.dkr.ecr.ap-southeast-1.amazonaws.com/bharath:${BUILD_ID}'
+   }
+   stage('updload to ECR'){
+       sh 'sudo docker push 928920371678.dkr.ecr.ap-southeast-1.amazonaws.com/bharath:${BUILD_ID}'
+   }
+   stage('create revision'){
+       sh 'aws ecs register-task-definition --family bharath --cli-input-json "$(cat < ./bharath.json)" --region ap-southeast-1'
+   
+   }
+   stage('update service'){
+       sh 'aws ecs update-service --cluster bharath --region ap-southeast-1 --service bharath --task-definition bharath:9'
+   }
+   
+}

@@ -1,0 +1,28 @@
+node{
+   stage('SCM Checkout'){
+     checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[credentialsId: '5c1aca4b-df6f-4ffd-a11e-29c0c1142cc2', url: 'https://github.com/Bharathwaj-D/reactjs.git']])
+      }
+   stage('build'){
+      
+       sh 'sudo yarn install'
+       sh 'sudo yarn run build'
+     
+   }
+   stage('upload build to s3'){
+      
+       
+      
+      
+       sh 'aws s3 sync /var/lib/jenkins/workspace/cloudfront/build s3://bharath1701'
+   }
+   stage('invalidation'){
+       sh 'aws cloudfront create-invalidation --distribution-id="E2GTYUKJ7GEAQ1" --paths "/*"'
+   }
+   stage('clean workspace'){
+       cleanWs()
+       
+   }
+   
+   
+
+}

@@ -1,0 +1,17 @@
+node{
+   stage('SCM Checkout'){
+     git 'https://github.com/Bharathwaj-D/bharath.git'
+   }
+   stage('zip source'){
+       sh 'zip ${BUILD_NUMBER}.zip * .[^.]*'
+   }
+   stage('storing in s3'){
+       sh 'aws s3 cp ${BUILD_NUMBER}.zip s3://elasticbeanstalk-ap-southeast-1-928920371678'
+   }
+   stage('creating application in Elastic Beanstalk'){
+        sh ' aws elasticbeanstalk create-application-version --application-name june10  --version-label v-${BUILD_NUMBER} --region ap-southeast-1 --source-bundle S3Bucket=elasticbeanstalk-ap-southeast-1-928920371678,S3Key=${BUILD_NUMBER}.zip'
+   }
+   stage('Deploy latest version in Elastic Beanstalk'){
+       sh 'aws elasticbeanstalk update-environment --application-name june10 --environment-name June10-env --region ap-southeast-1 --version-label v-${BUILD_NUMBER}'
+   }
+}
